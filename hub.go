@@ -14,7 +14,8 @@ import (
 
 const (
 	defaultExpire = time.Minute * 5
-	defaultMin    = 5
+	minExpire     = time.Second * 3
+	defaultMin    = 1
 	defaultMax    = 10
 	_Get          = iota
 	_Clean
@@ -127,8 +128,8 @@ func NewLevelHub(path string, o *Options) *LevelHub {
 	if o == nil {
 		o = NewOptions(nil)
 	}
-	if o.Expire < defaultExpire {
-		o.Expire = defaultExpire
+	if o.Expire < minExpire {
+		o.Expire = minExpire
 	}
 	if o.Min < defaultMin {
 		o.Min = defaultMin
@@ -188,6 +189,12 @@ func (hub *LevelHub) Close(nums ...int) {
 			}
 		}
 	}
+}
+
+// IsOpen returns true is DB Open.
+func (hub *LevelHub) IsOpen(num int) bool {
+	_, open := hub.cache[num]
+	return open
 }
 
 // Get gets the value for the given key.

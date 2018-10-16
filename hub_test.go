@@ -22,10 +22,10 @@ func TestHub(t *testing.T) {
 		Convey("Close", func() {
 			hub := NewLevelHub("tmp", nil)
 			defer hub.Close()
-			for i := 1; i < 100; i++ {
+			for i := 1; i < 10; i++ {
 				hub.Put(i, key, []byte("A"), nil)
 			}
-			for i := 1; i < 100; i++ {
+			for i := 1; i < 10; i++ {
 				a, _ := hub.Get(1, key, nil)
 				So(a[0], ShouldEqual, 'A')
 			}
