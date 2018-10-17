@@ -83,7 +83,7 @@ func (hub *LevelHub) run() {
 				}
 				delete(hub.cache, num)
 			}
-			cb.callBackC <- &callBack{}
+			cb.callBackC <- cb
 		case _Force:
 			log.Printf("LevelHub cache size is %d > %d ! \n", len(hub.cache), hub.o.Max)
 			for len(hub.cache) > hub.o.Max {
@@ -102,7 +102,7 @@ func (hub *LevelHub) run() {
 					delete(hub.cache, del)
 				}
 			}
-			cb.callBackC <- &callBack{}
+			cb.callBackC <- cb
 		}
 	}
 }
@@ -141,7 +141,7 @@ func NewLevelHub(path string, o *Options) *LevelHub {
 		path:      path,
 		o:         o,
 		cache:     map[int]*data{},
-		callBackC: make(chan *callBack, 3),
+		callBackC: make(chan *callBack, 5),
 	}
 
 	go hub.run()
@@ -157,21 +157,31 @@ func NewLevelHub(path string, o *Options) *LevelHub {
 				now := time.Now()
 				for _, d := range hub.cache {
 					if now.Sub(d.access) > hub.o.Expire {
-						hub.send(&callBack{
-							route: _Clean,
-						})
+						hub.Clean()
 						break
 					}
 				}
 				if size > hub.o.Max {
-					hub.send(&callBack{
-						route: _Force,
-					})
+					hub.Force()
 				}
 			}
 		}
 	}()
 	return hub
+}
+
+// Clean expire db
+func (hub *LevelHub) Clean() {
+	hub.send(&callBack{
+		route: _Clean,
+	})
+}
+
+// Force more than Max db must be delete
+func (hub *LevelHub) Force() {
+	hub.send(&callBack{
+		route: _Force,
+	})
 }
 
 // Close closes the nums DB.
